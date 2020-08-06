@@ -1,11 +1,18 @@
 name: 'action-docker-tag'
 description: 'A action to push multiple tags to a remote repository based on version number'
 author: 'Ed FitzGerald'
-#inputs: {}
-#  milliseconds: # change this
-#    required: true
-#    description: 'input description here'
-#    default: 'default value if applicable'
+inputs: {}
+  repo:
+    required: true
+    description: 'the name of the repo for the docker images'
+  dockerfile:
+    required: false
+    description: 'the path to the dockerfile to build'
+    default: 'Dockerfile'
+  context:
+    required: false
+    description: 'the path to the context for the build'
+    default: '.'
 runs:
   using: 'node12'
   main: 'dist/index.js'
