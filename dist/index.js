@@ -1050,6 +1050,7 @@ function run() {
                 core.setFailed(`Unable to generate tags for this revision: ${projectVersion}`);
                 return;
             }
+            core.info(`Tags to generate: ${tags}`);
             // build the docker image
             const repo = core.getInput('repo', { required: true });
             const dockerfile = core.getInput('dockerfile') || 'Dockerfile';

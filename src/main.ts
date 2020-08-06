@@ -59,6 +59,8 @@ async function run(): Promise<void> {
       return
     }
 
+    core.info(`Tags to generate: ${tags}`)
+
     // build the docker image
     const repo: string = core.getInput('repo', {required: true})
     const dockerfile: string = core.getInput('dockerfile') || 'Dockerfile'
