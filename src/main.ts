@@ -19,7 +19,7 @@ async function buildDockerImage(
   dockerfile: string,
   context: string,
   repo: string,
-  tag: string
+  tag: string,
 ): Promise<void> {
   await exec('docker', [
     'build',
@@ -61,7 +61,7 @@ async function run(): Promise<void> {
     const tags = generateTagListFromVersion(projectVersion)
     if (tags.length === 0) {
       core.setFailed(
-        `Unable to generate tags for this revision: ${projectVersion}`
+        `Unable to generate tags for this revision: ${projectVersion}`,
       )
       return
     }

@@ -1038,6 +1038,13 @@ function tagDockerImage(repo, orig_tag, new_tag) {
         return;
     });
 }
+function pushDockerImage(repo, tag) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const imageRef = `${repo}:${tag}`;
+        yield exec_1.exec('docker', [imageRef]);
+        return;
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -1060,6 +1067,10 @@ function run() {
             // tag the remaining images
             for (let i = 1; i < tags.length; ++i) {
                 yield tagDockerImage(repo, tags[0], tags[i]);
+            }
+            // push the images
+            for (const tag of tags) {
+                yield pushDockerImage(repo, tag);
             }
         }
         catch (error) {
