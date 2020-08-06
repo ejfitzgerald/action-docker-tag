@@ -57,6 +57,11 @@ async function run(): Promise<void> {
     // build the docker image
     await buildDockerImage(dockerfile, context, repo, tags[0])
 
+    // tag the remaining images
+    for (let i = 1; i < tags.length; ++i) {
+      await tagDockerImage(repo, tags[0], tags[i]);
+    }
+
     // core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
     //
     // core.debug(new Date().toTimeString())
