@@ -1,13 +1,18 @@
 import * as core from '@actions/core'
-import {exec as execOrig} from 'child_process'
-import {promisify} from 'util'
 import {generateTagListFromVersion} from './tags'
-
-const exec = promisify(execOrig)
+import {exec, ExecOptions} from '@actions/exec'
 
 async function determineVersion(): Promise<string> {
-  const {stdout} = await exec('git describe --tags --always --dirty=-wip')
-  return stdout.trim()
+  let execOutput = ''
+  const options: ExecOptions = {}
+  options.listeners = {
+    stdout: (data: Buffer) => {
+      execOutput += data.toString()
+    },
+  }
+  await exec('git', ['describe', '--tags', '--always', '--dirty=-wip'], options)
+
+  return execOutput.trim()
 }
 
 async function buildDockerImage(
@@ -16,7 +21,14 @@ async function buildDockerImage(
   repo: string,
   tag: string,
 ): Promise<void> {
-  await exec(`docker build -f "${dockerfile}" -t ${repo}:${tag} "${context}"`)
+  await exec('docker', [
+    'build',
+    '-f',
+    dockerfile,
+    '-t',
+    `${repo}:${tag}`,
+    context,
+  ])
   return
 }
 
@@ -28,22 +40,23 @@ async function tagDockerImage(
   const original = `${repo}:${orig_tag}`
   const destination = `${repo}:${new_tag}`
 
-  await exec(`docker tag ${original} ${destination}`)
+  await exec('docker', ['tag', original, destination])
   return
 }
 
 async function run(): Promise<void> {
   try {
-
     // determine the version for the project
     const projectVersion = await determineVersion()
-    core.debug(`Detected Version: ${projectVersion}`)
+    core.info(`Detected Version: ${projectVersion}`)
 
     // generate the set of targets for the build
     const tags = generateTagListFromVersion(projectVersion)
     if (tags.length === 0) {
-      core.setFailed('Unable to generate tags for this revision')
-      // return
+      core.setFailed(
+        `Unable to generate tags for this revision: ${projectVersion}`,
+      )
+      return
     }
 
     // build the docker image
@@ -51,24 +64,13 @@ async function run(): Promise<void> {
     const dockerfile: string = core.getInput('dockerfile') || 'Dockerfile'
     const context: string = core.getInput('context') || '.'
 
-    core.debug(`dockerfile = ${dockerfile}`)
-    core.debug(`context = ${context}`)
-
     // build the docker image
     await buildDockerImage(dockerfile, context, repo, tags[0])
 
     // tag the remaining images
     for (let i = 1; i < tags.length; ++i) {
-      await tagDockerImage(repo, tags[0], tags[i]);
+      await tagDockerImage(repo, tags[0], tags[i])
     }
-
-    // core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-    //
-    // core.debug(new Date().toTimeString())
-    // await wait(parseInt(ms, 10))
-    // core.debug(new Date().toTimeString())
-    //
-    // core.setOutput('time', new Date().toTimeString())
   } catch (error) {
     core.setFailed(error.message)
   }

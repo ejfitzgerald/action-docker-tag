@@ -1,5 +1,3 @@
-import {match} from 'assert'
-
 export interface VersionInfo {
   channel: 'release' | 'rc' | 'beta' | 'alpha' | 'dev'
   major: number
@@ -44,7 +42,6 @@ export function toSemVer(info: VersionInfo): string {
 }
 
 export function parseVersion(version: string): VersionInfo | undefined {
-
   // parse the version information
   const result = version.match(versionPattern)
   if (result === null) {

@@ -11,7 +11,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: 'a4578d1'
+        commit: 'a4578d1',
       },
       ['1.2.3+ga4578d1'],
     ],
@@ -23,7 +23,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: ''
+        commit: '',
       },
       ['1.2.3', '1.2', '1'],
     ],
@@ -35,18 +35,19 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: 'a4578d1'
+        commit: 'a4578d1',
       },
       ['1.2.3-dev+ga4578d1'],
     ],
-    ['1.2.3-rc4',
+    [
+      '1.2.3-rc4',
       {
         channel: 'rc',
         major: 1,
         minor: 2,
         patch: 3,
         build: 4,
-        commit: ''
+        commit: '',
       },
       ['1.2.3-rc4'],
     ],
@@ -58,7 +59,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: 'a4578d1'
+        commit: 'a4578d1',
       },
       ['1.2.3-dev+ga4578d1'],
     ],
@@ -70,7 +71,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: ''
+        commit: '',
       },
       ['1.2.3-beta4'],
     ],
@@ -82,7 +83,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: 'a4578d1'
+        commit: 'a4578d1',
       },
       ['1.2.3-dev+ga4578d1'],
     ],
@@ -94,7 +95,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: ''
+        commit: '',
       },
       ['1.2.3-alpha4'],
     ],
@@ -106,7 +107,7 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: 'a4578d1'
+        commit: 'a4578d1',
       },
       ['1.2.3-dev+ga4578d1'],
     ],
@@ -118,10 +119,10 @@ describe('tag generation tests', () => {
         minor: 2,
         patch: 3,
         build: 4,
-        commit: ''
+        commit: '',
       },
       ['1.2.3-dev'],
-    ]
+    ],
   ]).it('tags for %s', (title, info, tags) => {
     expect(generateTagList(info)).toMatchObject(tags)
   })
