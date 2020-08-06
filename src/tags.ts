@@ -4,7 +4,7 @@ export function generateTagList(info: VersionInfo): string[] {
   const tags = [toSemVer(info)]
 
   if (info.channel === 'release' && info.commit === '') {
-    if (info.minor !== 0) {
+    if (info.minor !== 0 || info.major !== 0) {
       tags.push(`${info.major}.${info.minor}`)
 
       if (info.major !== 0) {
