@@ -1,7 +1,7 @@
 name: 'action-docker-tag'
 description: 'A action to push multiple tags to a remote repository based on version number'
 author: 'Ed FitzGerald'
-inputs: {}
+inputs:
   repo:
     required: true
     description: 'the name of the repo for the docker images'
