@@ -100,20 +100,52 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const child_process_1 = __webpack_require__(129);
 const util_1 = __webpack_require__(669);
+const tags_1 = __webpack_require__(349);
 const exec = util_1.promisify(child_process_1.exec);
 function determineVersion() {
     return __awaiter(this, void 0, void 0, function* () {
-        const result = yield exec('git describe --tags --always --dirty=-wip');
-        console.log(result);
-        return '';
+        const { stdout } = yield exec('git describe --tags --always --dirty=-wip');
+        return stdout.trim();
+    });
+}
+function buildDockerImage(dockerfile, context, repo, tag) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield exec(`docker build -f "${dockerfile}" -t ${repo}:${tag} "${context}"`);
+        return;
+    });
+}
+function tagDockerImage(repo, orig_tag, new_tag) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const original = `${repo}:${orig_tag}`;
+        const destination = `${repo}:${new_tag}`;
+        yield exec(`docker tag ${original} ${destination}`);
+        return;
     });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const [err, stdout, stderr] = yield determineVersion();
-            core.debug(`Version: ${stdout}`);
-            // const ms: string = core.getInput('milliseconds')
+            // determine the version for the project
+            const projectVersion = yield determineVersion();
+            core.debug(`Detected Version: ${projectVersion}`);
+            // generate the set of targets for the build
+            const tags = tags_1.generateTagListFromVersion(projectVersion);
+            if (tags.length === 0) {
+                core.setFailed('Unable to generate tags for this revision');
+                // return
+            }
+            // build the docker image
+            const repo = core.getInput('repo', { required: true });
+            const dockerfile = core.getInput('dockerfile') || 'Dockerfile';
+            const context = core.getInput('context') || '.';
+            core.debug(`dockerfile = ${dockerfile}`);
+            core.debug(`context = ${context}`);
+            // build the docker image
+            yield buildDockerImage(dockerfile, context, repo, tags[0]);
+            // tag the remaining images
+            for (let i = 1; i < tags.length; ++i) {
+                yield tagDockerImage(repo, tags[0], tags[i]);
+            }
             // core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
             //
             // core.debug(new Date().toTimeString())
@@ -128,6 +160,39 @@ function run() {
     });
 }
 run();
+
+
+/***/ }),
+
+/***/ 349:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateTagListFromVersion = exports.generateTagList = void 0;
+const version_1 = __webpack_require__(775);
+function generateTagList(info) {
+    const tags = [version_1.toSemVer(info)];
+    if (info.channel === 'release' && info.commit === '') {
+        if (info.minor !== 0) {
+            tags.push(`${info.major}.${info.minor}`);
+            if (info.major !== 0) {
+                tags.push(`${info.major}`);
+            }
+        }
+    }
+    return tags;
+}
+exports.generateTagList = generateTagList;
+function generateTagListFromVersion(version) {
+    const info = version_1.parseVersion(version);
+    if (info === undefined) {
+        return [];
+    }
+    return generateTagList(info);
+}
+exports.generateTagListFromVersion = generateTagListFromVersion;
 
 
 /***/ }),
@@ -471,6 +536,82 @@ module.exports = require("path");
 /***/ (function(module) {
 
 module.exports = require("util");
+
+/***/ }),
+
+/***/ 775:
+/***/ (function(__unusedmodule, exports) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseVersion = exports.toSemVer = void 0;
+const versionPattern = /^v(\d+)\.(\d+)\.(\d+)[-.]?(?:(alpha|beta|rc)(\d+))?(?:-\d+-g([a-f0-9]{7,})(?:-(wip|dirty))?)?$/;
+function toSemVer(info) {
+    const base = `${info.major}.${info.minor}.${info.patch}`;
+    let build = '';
+    let preRelease = '';
+    if (info.channel !== 'release') {
+        const channel = info.commit !== '' ? 'dev' : info.channel;
+        let buildNum = 0;
+        if (info.commit === '' && channel !== 'dev') {
+            buildNum = info.build;
+        }
+        preRelease = `-${channel}`;
+        if (buildNum > 0) {
+            preRelease += buildNum.toString();
+        }
+    }
+    if (info.commit !== '') {
+        build += `g${info.commit}`;
+    }
+    // add the build
+    if (build !== '') {
+        build = `+${build}`;
+    }
+    return `${base}${preRelease}${build}`;
+}
+exports.toSemVer = toSemVer;
+function parseVersion(version) {
+    var _a;
+    // parse the version information
+    const result = version.match(versionPattern);
+    if (result === null) {
+        return undefined;
+    }
+    // select the channel and build
+    let build = 0;
+    let channel = 'release';
+    if (result[4]) {
+        switch (result[4]) {
+            case 'alpha':
+            case 'beta':
+            case 'rc':
+                channel = result[4];
+                build = parseInt(result[5]);
+                break;
+        }
+    }
+    // extract the
+    const commit = (_a = result[6]) !== null && _a !== void 0 ? _a : '';
+    const dirty = !!result[7]; // presence of any "-wip" or "-dirty" suffix
+    // if there is any trailing version information then this is always a dev version
+    if (commit !== '') {
+        channel = 'dev';
+        build = 0;
+    }
+    return {
+        channel,
+        major: parseInt(result[1]),
+        minor: parseInt(result[2]),
+        patch: parseInt(result[3]),
+        build,
+        commit,
+        dirty,
+    };
+}
+exports.parseVersion = parseVersion;
+
 
 /***/ })
 
