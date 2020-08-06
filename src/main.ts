@@ -19,7 +19,7 @@ async function buildDockerImage(
   dockerfile: string,
   context: string,
   repo: string,
-  tag: string,
+  tag: string
 ): Promise<void> {
   await exec('docker', [
     'build',
@@ -44,6 +44,13 @@ async function tagDockerImage(
   return
 }
 
+async function pushDockerImage(repo: string, tag: string): Promise<void> {
+  const imageRef = `${repo}:${tag}`
+
+  await exec('docker', [imageRef])
+  return
+}
+
 async function run(): Promise<void> {
   try {
     // determine the version for the project
@@ -54,7 +61,7 @@ async function run(): Promise<void> {
     const tags = generateTagListFromVersion(projectVersion)
     if (tags.length === 0) {
       core.setFailed(
-        `Unable to generate tags for this revision: ${projectVersion}`,
+        `Unable to generate tags for this revision: ${projectVersion}`
       )
       return
     }
@@ -72,6 +79,11 @@ async function run(): Promise<void> {
     // tag the remaining images
     for (let i = 1; i < tags.length; ++i) {
       await tagDockerImage(repo, tags[0], tags[i])
+    }
+
+    // push the images
+    for (const tag of tags) {
+      await pushDockerImage(repo, tag)
     }
   } catch (error) {
     core.setFailed(error.message)
