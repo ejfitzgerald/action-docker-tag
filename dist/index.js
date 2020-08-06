@@ -1083,7 +1083,7 @@ const version_1 = __webpack_require__(775);
 function generateTagList(info) {
     const tags = [version_1.toSemVer(info)];
     if (info.channel === 'release' && info.commit === '') {
-        if (info.minor !== 0) {
+        if (info.minor !== 0 || info.major !== 0) {
             tags.push(`${info.major}.${info.minor}`);
             if (info.major !== 0) {
                 tags.push(`${info.major}`);
