@@ -5,6 +5,7 @@ inputs: {}
   repo:
     required: true
     description: 'the name of the repo for the docker images'
+    default: ''
   dockerfile:
     required: false
     description: 'the path to the dockerfile to build'
