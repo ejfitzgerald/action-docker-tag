@@ -1011,22 +1011,20 @@ function determineVersion() {
         options.listeners = {
             stdout: (data) => {
                 execOutput += data.toString();
-            },
+            }
         };
         yield exec_1.exec('git', ['describe', '--tags', '--always', '--dirty=-wip'], options);
         return execOutput.trim();
     });
 }
-function buildDockerImage(dockerfile, context, repo, tag) {
+function buildDockerImage(dockerfile, context, repo, tag, target) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield exec_1.exec('docker', [
-            'build',
-            '-f',
-            dockerfile,
-            '-t',
-            `${repo}:${tag}`,
-            context,
-        ]);
+        const args = ['build', '-f', dockerfile, '-t', `${repo}:${tag}`];
+        if (target !== '') {
+            args.push(...['--target', target]);
+        }
+        args.push(context);
+        yield exec_1.exec('docker', args);
         return;
     });
 }
@@ -1062,8 +1060,9 @@ function run() {
             const repo = core.getInput('repo', { required: true });
             const dockerfile = core.getInput('dockerfile') || 'Dockerfile';
             const context = core.getInput('context') || '.';
+            const target = core.getInput('target') || '';
             // build the docker image
-            yield buildDockerImage(dockerfile, context, repo, tags[0]);
+            yield buildDockerImage(dockerfile, context, repo, tags[0], target);
             // tag the remaining images
             for (let i = 1; i < tags.length; ++i) {
                 yield tagDockerImage(repo, tags[0], tags[i]);
