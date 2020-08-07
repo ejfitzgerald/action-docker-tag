@@ -48,7 +48,7 @@ async function tagDockerImage(
 async function pushDockerImage(repo: string, tag: string): Promise<void> {
   const imageRef = `${repo}:${tag}`
 
-  await exec('docker', [imageRef])
+  await exec('docker', ['push', imageRef])
   return
 }
 

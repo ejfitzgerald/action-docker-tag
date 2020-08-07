@@ -1011,7 +1011,7 @@ function determineVersion() {
         options.listeners = {
             stdout: (data) => {
                 execOutput += data.toString();
-            }
+            },
         };
         yield exec_1.exec('git', ['describe', '--tags', '--always', '--dirty=-wip'], options);
         return execOutput.trim();
@@ -1039,7 +1039,7 @@ function tagDockerImage(repo, orig_tag, new_tag) {
 function pushDockerImage(repo, tag) {
     return __awaiter(this, void 0, void 0, function* () {
         const imageRef = `${repo}:${tag}`;
-        yield exec_1.exec('docker', [imageRef]);
+        yield exec_1.exec('docker', ['push', imageRef]);
         return;
     });
 }
