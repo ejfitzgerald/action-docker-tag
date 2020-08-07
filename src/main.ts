@@ -8,7 +8,7 @@ async function determineVersion(): Promise<string> {
   options.listeners = {
     stdout: (data: Buffer) => {
       execOutput += data.toString()
-    }
+    },
   }
   await exec('git', ['describe', '--tags', '--always', '--dirty=-wip'], options)
 
@@ -62,7 +62,7 @@ async function run(): Promise<void> {
     const tags = generateTagListFromVersion(projectVersion)
     if (tags.length === 0) {
       core.setFailed(
-        `Unable to generate tags for this revision: ${projectVersion}`
+        `Unable to generate tags for this revision: ${projectVersion}`,
       )
       return
     }
