@@ -14,6 +14,10 @@ inputs:
     required: false
     description: 'the path to the context for the build'
     default: '.'
+  target:
+    required: false
+    description: 'the name of the target to build'
+    default: ''
 runs:
   using: 'node12'
   main: 'dist/index.js'

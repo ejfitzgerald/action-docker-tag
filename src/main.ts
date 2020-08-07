@@ -8,7 +8,7 @@ async function determineVersion(): Promise<string> {
   options.listeners = {
     stdout: (data: Buffer) => {
       execOutput += data.toString()
-    },
+    }
   }
   await exec('git', ['describe', '--tags', '--always', '--dirty=-wip'], options)
 
@@ -20,15 +20,16 @@ async function buildDockerImage(
   context: string,
   repo: string,
   tag: string,
+  target: string,
 ): Promise<void> {
-  await exec('docker', [
-    'build',
-    '-f',
-    dockerfile,
-    '-t',
-    `${repo}:${tag}`,
-    context,
-  ])
+  const args = ['build', '-f', dockerfile, '-t', `${repo}:${tag}`]
+
+  if (target !== '') {
+    args.push(...['--target', target])
+  }
+  args.push(context)
+
+  await exec('docker', args)
   return
 }
 
@@ -61,7 +62,7 @@ async function run(): Promise<void> {
     const tags = generateTagListFromVersion(projectVersion)
     if (tags.length === 0) {
       core.setFailed(
-        `Unable to generate tags for this revision: ${projectVersion}`,
+        `Unable to generate tags for this revision: ${projectVersion}`
       )
       return
     }
@@ -72,9 +73,10 @@ async function run(): Promise<void> {
     const repo: string = core.getInput('repo', {required: true})
     const dockerfile: string = core.getInput('dockerfile') || 'Dockerfile'
     const context: string = core.getInput('context') || '.'
+    const target: string = core.getInput('target') || ''
 
     // build the docker image
-    await buildDockerImage(dockerfile, context, repo, tags[0])
+    await buildDockerImage(dockerfile, context, repo, tags[0], target)
 
     // tag the remaining images
     for (let i = 1; i < tags.length; ++i) {
