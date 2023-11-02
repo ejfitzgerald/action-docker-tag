@@ -18,6 +18,10 @@ inputs:
     required: false
     description: 'the name of the target to build'
     default: ''
+  platforms:
+    required: false
+    description: 'coma separated list of platforms, e.g. linux/amd64,linux/arm64'
+    default: ''
 runs:
   using: 'node12'
   main: 'dist/index.js'
