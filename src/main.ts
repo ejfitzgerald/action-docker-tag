@@ -21,12 +21,18 @@ async function buildDockerImage(
   repo: string,
   tag: string,
   target: string,
+  platforms: string,
 ): Promise<void> {
   const args = ['build', '-f', dockerfile, '-t', `${repo}:${tag}`]
 
   if (target !== '') {
     args.push(...['--target', target])
   }
+
+  if (platforms !== '') {
+    args.push(...['--platform', platforms])
+  }
+
   args.push(context)
 
   await exec('docker', args)
@@ -74,9 +80,10 @@ async function run(): Promise<void> {
     const dockerfile: string = core.getInput('dockerfile') || 'Dockerfile'
     const context: string = core.getInput('context') || '.'
     const target: string = core.getInput('target') || ''
+    const platforms: string = core.getInput('platforms') || ''
 
     // build the docker image
-    await buildDockerImage(dockerfile, context, repo, tags[0], target)
+    await buildDockerImage(dockerfile, context, repo, tags[0], target, platforms)
 
     // tag the remaining images
     for (let i = 1; i < tags.length; ++i) {
